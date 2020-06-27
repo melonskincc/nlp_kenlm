@@ -4,9 +4,9 @@ import os, time, datetime, hmac, hashlib, base64, qrcode, re
 from NLP.settings import STATICFILES_DIRS, STATIC_URL
 from aip import AipNlp
 
-APP_ID = '20243693'
-API_KEY = '92md91268lAFaRkIskFsgKMR'
-SECRET_KEY = 'NvROGCeLOECGER9CbwVXwFgtRD1LC9zr'
+APP_ID = ''
+API_KEY = ''
+SECRET_KEY = ''
 
 
 def byte_secret(secret: str):
