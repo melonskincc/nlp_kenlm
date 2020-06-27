@@ -1,0 +1,98 @@
+body{
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+#dropdown{
+    border: 1px solid;
+    width: 200px;
+    border-radius: 2px;
+}
+#dropdown fieldset:hover{
+    background-color: #dadada;
+}
+#dropdown fieldset label{
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    text-indent: 10px;
+}
+#dropdown fieldset{
+    margin: 0;
+    padding: 0;
+    border: 0;
+}
+#dropdown .options > fieldset:valid{
+    background: #dadada;
+    margin-right: 2px;
+    border-radius: 2px;
+    padding: 0 4px;
+}
+#dropdown .options > fieldset:valid label{
+    text-indent: 0;
+}
+#dropdown .options > fieldset:not(:first-child):valid{
+    height: 15px;
+    font-size: 14px;
+    background: #545353;
+    color: #fff;
+    font-family: Arial;
+    cursor: pointer;
+}
+
+/* Логика */
+#dropdown{
+    position: relative;
+    --item-height: 30px;
+    --list-height: 200px;
+}
+#dropdown [data-value]:before{
+    content: attr(data-value);
+}
+#dropdown input{
+    opacity: 0;
+    position: absolute;
+}
+#dropdown,
+#dropdown .options fieldset{
+    height: var(--item-height);
+}
+#dropdown .options{
+    display: flex;
+    position: absolute;
+    flex-wrap: wrap;
+    width: 100%;
+    top: 0;
+    overflow: hidden;
+    max-height: var(--item-height);
+    transition: 0s .1s max-height;
+}
+#dropdown > :focus + .options{
+    max-height: var(--list-height);
+    overflow-y: scroll;
+}
+#dropdown > input:not(:focus){
+    width: 100%;
+    height: 100%;
+    display: block;
+    z-index: 3;
+}
+#dropdown > input{
+    position: relative;
+}
+#dropdown .options > fieldset:invalid{
+    order: 2;
+}
+#dropdown fieldset{
+    flex-basis: 100%;
+}
+#dropdown .options > fieldset:valid{
+    flex-basis: 10%;
+    z-index: 3;
+}
+#dropdown .options > fieldset:first-child{
+    flex-basis: 0;
+    padding: 0;
+}
