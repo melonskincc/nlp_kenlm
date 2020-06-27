@@ -1,0 +1,74 @@
+{% load staticfiles %}
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-COMPATIBLE" content="IE=edge">
+    <meta content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" name="viewport">
+    <link rel="shortcut icon" href="{% static 'favicon.ico' %}">
+    <link rel="stylesheet" type="text/css" href="{% static "dist/css/bootstrap.min.css" %}">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="{% static 'dist/css/font-awesome.min.css' %}">
+    <!-- Ionicons -->
+    <link rel="stylesheet" type="text/css" href="{% static "dist/css/AdminLTE.css" %}">
+    <link rel="stylesheet" type="text/css" href="{% static "dist/css/skins/_all-skins.min.css" %}">
+    <link rel="stylesheet" type="text/css" href="{% static "dist/css/conflicts.css" %}">
+    <link rel="stylesheet" type="text/css" href="{% static "dist/css/toastr.min.css" %}">
+    {% block extra_head %}{% endblock %}
+</head>
+
+<body>
+<div class="login-box">
+    <div class="login-logo">
+        <b>中文纠错平台</b>
+    </div>
+    <!-- /.login-logo -->
+    <div class="login-box-body">
+        <form action="/users/login/" method="post" id="loginForm" name="myForm">
+            {% csrf_token %}
+            <div class="form-group has-feedback">
+                <input name="username" required class="form-control" placeholder="用户名" id="uname">
+                <span class="glyphicon glyphicon-user form-control-feedback"></span>
+                <span style="font-size: 8px;color: red; display: none;" id="u_span"></span>
+            </div>
+            <div class="form-group has-feedback">
+                <input type="password" name="password" required class="form-control" placeholder="密码"
+                       minlength="4" id="pwd">
+                <span class="glyphicon glyphicon-lock form-control-feedback"></span>
+                <span style="font-size: 8px;color: red; display: none;" id="p_span"></span>
+            </div>
+            <div class="form-group has-feedback">
+                <input type="text" name="opt_code" class="form-control" placeholder="验证码">
+                <span class="glyphicon glyphicon-qrcode form-control-feedback"></span>
+                <span style="font-size: 8px;color: red;">{{ error }}</span>
+                <h5 class="red-text text-center" style="color: #00acd6">提示:首次登陆不需要输入验证码,直接登陆激活</h5>
+            </div>
+            <div class="row">
+                <div class="col-xs-8">
+                    {% block login_form_links %}
+                    {% endblock %}
+                </div>
+                <div class="col-xs-4">
+                    <input type="submit" class="btn btn-primary btn-block btn-flat" value="登陆">
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+</body>
+
+{% block script %}
+    <script src="{% static 'dist/js/jquery-2.2.3.min.js' %}"></script>
+    <script src="{% static 'dist/js/jquery.cookie.js' %}"></script>
+    <script src="{% static 'dist/js/toastr.min.js' %}"></script>
+    <script>
+        $(function () {
+            toastr.options.positionClass = 'toast-top-center';
+            toastr.options.timeOut = 1500;
+            let err = '{{ error }}';
+            if (err) {
+                toastr.error('{{ error }}')
+            }
+        });
+    </script>
+{% endblock %}

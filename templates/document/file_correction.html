@@ -1,0 +1,203 @@
+<!--文件上传页面-->
+{% extends 'base.html' %}
+{% load staticfiles %}
+{% block title %}文件上传纠错{% endblock %}
+
+{% block css %}
+    <!-- DataTables -->
+    <link rel="stylesheet" href="{% static 'dist/css/dataTables.bootstrap.css' %}">
+    <link rel="stylesheet" href="{% static 'dist/css/multi-select.css' %}">
+    <link rel="stylesheet" href="{% static 'dist/css/all.css' %}">
+    <link rel="stylesheet" href="{% static 'dist/css/webuploader.css' %}">
+    <link rel="stylesheet" href="{% static 'dist/css/skins/square/green.css' %}">
+{% endblock %}
+
+{% block document %}
+    <li class="treeview active">
+        <a href="#">
+            <i class="fa fa-info"></i><span>中文纠错</span>
+        </a>
+        <ul class="treeview-menu active" style="background-color:#ccc;padding: 0px;">
+            <li>
+                <a href="{% url 'document:upload_correction' %}" style="background-color:#428bca;color: #FFFFFF;">
+                    <i class="fa fa-file-word-o" style="margin-left: 15px"></i>
+                    <span>文件上传纠错</span>
+                </a>
+            </li>
+            <li id="personal_logger">
+                <a href="#" style="color:black;">
+                    <i class="fa fa-file" style="margin-left: 15px"></i>
+                    <span>语料上传训练</span>
+                </a>
+            </li>
+            <li id="personal_logger">
+                <a href="#" style="color:black;">
+                    <i class="fa fa-file" style="margin-left: 15px"></i>
+                    <span>三方api纠错</span>
+                </a>
+            </li>
+        </ul>
+    </li>
+{% endblock %}
+
+{% block content %}
+    <section class="content-header">
+        <h1>
+            文件上传
+        </h1>
+        <ol class="breadcrumb">
+            <li><a href="{% url 'document:index' %}"><i class="fa fa-dashboard"></i>主页</a></li>
+            <li class="active">文件上传</li>
+        </ol>
+    </section>
+    <section class="content">
+        <div class="box box-success">
+            <div style="margin: 10px">
+                <div id="picker">请选择上传的文件</div>  <!-- 上传按钮，必须指定id选择器的值 -->
+                <div id="thelist" class="uploader-list"></div>
+                <div>
+                    <input type="radio" name="method" value="kenlm" checked>kenlm纠错
+                    <input type="radio" name="method" value="baidu">百度api纠错
+                </div>
+                <div class="progress">         <!-- 进度条 -->
+                    <div class="progress-bar progress-bar-striped active" role="progressbar"></div>
+                </div>
+            </div>
+            <div class="box-body">
+                <table id="report-table" class="table table-bordered table-striped">
+                    <thead>
+                    <tr>
+                        <th>文件名</th>
+                        <th>处理状态</th>
+                        <th>处理方法</th>
+                        <th>文件类型</th>
+                        <th>创建时间</th>
+                        <th>处理完成时间</th>
+                        <th>操作</th>
+                    </tr>
+                    </thead>
+                    <tbody id="tbody">
+                    {% for file in files %}
+                        <tr>
+                            <td>{{ file.name }}</td>
+                            <td>{{ file.get_status_display }}</td>
+                            <td>{{ file.get_process_method_display }}</td>
+                            <td>{{ file.get_kind_display }}</td>
+                            <td>{{ file.ct }}</td>
+                            <td>{{ file.st }}</td>
+                            <td>
+                                {% if file.status == 3 %}
+                                    <button class="btn btn-info" onclick="download({{ file.id }})">下载</button>
+                                    <button class="btn btn-danger" onclick="del({{ file.id }})">删除
+                                    </button>
+                                {% else %}
+                                    <button class="btn btn-danger" onclick="del({{ file.id }})">删除</button>
+                                {% endif %}
+                            </td>
+                        </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+                <!-- /.box-body -->
+            </div>
+        </div>
+    </section>
+{% endblock %}
+
+{% block script %}
+    <script src="{% static 'dist/js/bootstrap-treeview.min.js' %}"></script>
+    <script src="{% static 'dist/js/jquery.dataTables.min.js' %}"></script>
+    <script src="{% static 'dist/js/dataTables.bootstrap.min.js' %}"></script>
+    <script src="{% static 'dist/js/webuploader.min.js' %}"></script>
+    <script src="{% static 'dist/js/icheck.min.js' %}"></script>
+    <script>
+        let download = function (id) {
+            window.location.href = '{% url 'document:download' %}' + '?id=' + id
+        };
+        let del = function (id) {
+            $.ajax({
+                url: '{% url 'document:upload_correction' %}',
+                type: 'DELETE',
+                headers: {'X-CSRFToken': cookie},
+                ContentType: 'application/json',
+                data: {'id': id},
+                success: function (data) {
+                    if (data.code !== 200) {
+                        toastr.error(data.msg)
+                    } else {
+                        toastr.success(data.msg);
+                        window.location.reload()
+                    }
+                }
+            })
+        };
+        // 上传文件
+        $(document).ready(function () {
+            var uploader = WebUploader.create({                 //创建上传控件
+                swf: "{% static 'dist/js/Uploader.swf' %}",     //swf位置，这个可能与flash有关
+                server: "{% url 'document:upload_correction'%}",       //接收每一个分片的服务器地址
+                pick: '#picker',                                //填上传按钮的id选择器值
+                auto: true,                                     //选择文件后，是否自动上传
+                threads: 10,                                    // 允许最大进程数上传：默认3
+                fileSizeLimit: 10 * 1024 * 1024,                   // 限制总文件大小
+                headers: {'X-CSRFToken': cookie}
+            });
+            uploader.on('uploadBeforeSend', function (block, data) {
+                data.method = $('input[name="method"]:checked').val();    // 将存在file对象中的md5数据携带发送过去。
+            }, 2);
+            // 显示上传文件名
+            uploader.on('fileQueued', function (file) {
+                $("#thelist").append('<div id="' + file.id + '" class="item">' + '<span style="font-size:20px">' + file.name + '</span>' + '<span>  正在上传...</span>' + '</div>');
+            });
+
+            uploader.on('error', function (handler) {
+                if (handler === 'Q_EXCEED_SIZE_LIMIT') {
+                    toastr.warning('文件大小不能超过10M！');
+                }
+            });
+            uploader.on('uploadSuccess', function (file, response) {
+                if (response.code !== 200) {
+                    $('.progress-bar').css('width', '100%').css('background-color', 'red');
+                    $('.progress-bar').text('上传失败');
+                    toastr.error(response.msg)
+                } else {
+                    $('.progress-bar').css('width', '100%');
+                    $('.progress-bar').text('上传完成');
+                    toastr.success(response.msg)
+                }
+                setInterval(function () {
+                    window.location.reload()
+                }, 1500)
+            });
+            uploader.on('uploadError', function (file, reason) {
+                $('.progress-bar').css('width', '100%').css('background-color', 'red');
+                $('.progress-bar').text('上传失败');
+                toastr.error(reason);
+                setInterval(function () {
+                    window.location.reload()
+                }, 1500)
+            });
+            $('input[name="method"]').iCheck({
+                checkboxClass: 'icheckbox_square-green',
+                radioClass: 'iradio_square-green',
+                increaseArea: '20%'
+            }).on('ifChecked', function () {
+                console.log($('input[name="method"]:checked').val())
+            });
+
+            $('#report-table').DataTable({
+                "paging": true,
+                "language": lang,
+                "lengthChange": true,
+                "searching": true,
+                "ordering": true,
+                "info": true,
+                "autoWidth": true,
+                "scrollY": "900px",
+                "scrollCollapse": true,
+                "lengthMenu": [[25, 50, 100, -1], [25, 50, 100, "全部"]],  //每页展示的页数
+            });
+        });
+
+    </script>
+{% endblock %}

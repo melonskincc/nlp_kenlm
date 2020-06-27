@@ -1,0 +1,295 @@
+{% extends 'base.html' %}
+{% load staticfiles %}
+{% block title %}用户列表{% endblock %}
+
+{% block css %}
+    <!-- DataTables -->
+    <link rel="stylesheet" href="{% static 'dist/css/dataTables.bootstrap.css' %}">
+{% endblock %}
+{% block edit_usermanager %}
+    <li class="treeview active">
+        <a href="#">
+            <i class="fa fa-user-plus"></i>
+            <span>用户管理</span>
+        </a>
+        <ul class="treeview-menu active" style="background-color: #ccc;padding: 0px">
+            <li>
+                <a href="#" style="background-color:#428bca;color: #FFFFFF">
+                    <i class="fa fa-user-secret" style="margin-left: 20px"></i>
+                    <span>用户列表</span>
+                </a>
+            </li>
+            <li>
+                <a href="#" style="color:black;">
+                    <i class="fa fa-list-alt" style="margin-left: 20px"></i>
+                    <span>用户日志</span>
+                </a>
+            </li>
+        </ul>
+    </li>
+{% endblock %}
+
+{% block content %}
+    <!-- Content Header (Page header) -->
+    <section class="content-header">
+        <h1>
+            用户列表 (点击用户名进入详情页)
+        </h1>
+        <ol class="breadcrumb">
+            <li><a href="#"><i class="fa fa-dashboard"></i> 主页 </a></li>
+            <li class="active">用户列表</li>
+        </ol>
+    </section>
+
+    <!-- Main content -->
+    <section class="content">
+        <div class="row" id="firstDiv">
+            <div class="col-xs-12">
+                <div class="box">
+                    <!-- /.box-header -->
+                    <div class="box-body">
+                        <table id="assets-table" class="table table-bordered table-striped" cellspacing="0">
+                            <thead>
+                            <tr>
+                                <th>用户名称</th>
+                                <th>用户权限</th>
+                                <th>用户创建时间</th>
+                                <th>用户最近登陆时间</th>
+                                <th>potato账号</th>
+                                <th>chat_id</th>
+                            </tr>
+                            </thead>
+                            <tbody id="tbody">
+                            {% for user in users %}
+                                {% if user.username != 'admin' %}
+                                    <tr>
+                                        <td><a href="#">{{ user.username }}</a></td>
+                                        <td>{{ user.permission }}</td>
+                                        <td>{{ user.date_joined }}</td>
+                                        <td>{{ user.last_login }}</td>
+                                        <td>{{ user.potato_username }}</td>
+                                        <td>{{ user.chat_id }}</td>
+                                    </tr>
+                                {% endif %}
+                            {% endfor %}
+                            </tbody>
+                        </table>
+
+                        <!-- Modal -->
+                        <div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel"
+                             aria-hidden="true">
+                            <div class="modal-dialog">
+                                <div class="modal-content">
+                                    <div class="modal-header">
+                                        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">
+                                            &times;
+                                        </button>
+                                        <h4 class="modal-title" id="myModalLabel">新增用户</h4>
+                                    </div>
+
+                                    <div class="modal-body">
+                                        <div class="input-group">
+                                            <span class="input-group-addon glyphicon glyphicon-user"
+                                                  style="border: none"></span>
+                                            <input type="text" class="form-control" placeholder="用户名" id="UserName"
+                                                   style="width: 400px" autofocus>
+                                            <span style="font-size: 8px;color: red; display: none;"
+                                                  id="UserName_span"></span>
+                                        </div>
+                                        <br>
+                                        <div class="input-group">
+                                            <span class="input-group-addon glyphicon glyphicon-lock"
+                                                  style="border: none"></span>
+                                            <input type="password" class="form-control" placeholder="密码" id="PWD"
+                                                   style="width: 400px">
+                                            <span style="font-size: 8px;color: red; display: none;"
+                                                  id="PWD_span"></span>
+                                        </div>
+                                        <br>
+                                        <div class="input-group">
+                                            <span class="input-group-addon glyphicon glyphicon-lock"
+                                                  style="border: none"></span>
+                                            <input type="password" class="form-control" placeholder="确认密码"
+                                                   id="check_PWD" style="width: 400px">
+                                            <span style="font-size: 8px;color: red; display: none;"
+                                                  id="check_PWD_span"></span>
+                                        </div>
+                                        <br>
+                                    </div>
+                                    <div class="modal-footer">
+                                        <button type="button" class="btn btn-default" data-dismiss="modal"
+                                                id="clear_button">关闭
+                                        </button>
+                                        <button type="button" class="btn btn-primary" id="add_button">保存</button>
+                                    </div>
+                                </div><!-- /.modal-content -->
+                            </div><!-- /.modal-dialog -->
+                        </div><!-- /.modal -->
+                        <div class="row" style="margin-left:0px">
+                            <button class="btn btn-primary btn-md" data-toggle="modal" data-placement="left"
+                                    id="add_user">添加新用户
+                            </button>
+                            <button class="btn btn-danger btn-md" data-toggle="modal" id="delete_button"
+                                    data-placement="right">删除所选用户
+                            </button>
+                        </div>
+                    </div>
+                    <!-- /.box-body -->
+                </div>
+                <!-- /.box -->
+            </div>
+        </div>
+    </section>
+{% endblock %}
+
+{% block script %}
+    <!-- DataTables -->
+    <script src="{% static 'dist/js/jquery.dataTables.min.js' %}"></script>
+    <script src="{% static 'dist/js/dataTables.bootstrap.min.js' %}"></script>
+    <script>
+        $(function () {
+            let lang = {
+                "sProcessing": "数据加载中...",
+                "sLengthMenu": "每页 _MENU_ 条",
+                "sInfo": "当前显示第 _START_ 至 _END_ 条 共 _TOTAL_ 条",
+                "sSearch": "搜索",
+                "sLoadingRecords": "数据加载中...",
+                "sEmptyTable": "查询结果为空...",
+                "oPaginate": {
+                    "sFirst": "首页",
+                    "sPrevious": "上一页",
+                    "sNext": "下一页",
+                    "sLast": "末页",
+                    "sJump": "跳转"
+                },
+            };
+            $('#assets-table').DataTable({
+                "destroy": true,
+                "language": lang,
+                "select": true,
+                "lengthMenu": [[20, 50, 100, -1], [20, 50, 100, "All"]],
+                "ordering": false
+            });
+            $("#assets-table tbody").on("click", "tr", function () {
+                $(this).toggleClass("selected");
+            });
+            //模态框手动添加事件
+            $('#add_user').click(function () {
+                $("#myModal").modal({backdrop: false});  // 控制添加新用户弹框
+                $('#myModal').modal("show");
+                setTimeout("$(\'#UserName\').focus()", 500);
+            });
+
+            //添加按钮操作
+            $("#add_button").click(function () {
+                let user_name = /^[a-zA-Z0-9_-]{4,16}$/;
+                let pass_word = /^.*(?=.{6,})(?=.*\d)(?=.*[a-z]).*$/;
+                let UserName = $("#UserName").val();
+                let PWD = $("#PWD").val();
+                let check_PWD = $("#check_PWD").val();
+                let is_UserName = user_name.test(UserName);
+                let is_PWD = pass_word.test(PWD);
+                let sha = sha1(PWD + 'anquan');
+                let check_sha = sha1(check_PWD + 'anquan');
+                if (is_UserName === true) {
+                    if (is_PWD === true) {
+                        if (PWD === check_PWD) {
+                            $.ajax({
+                                url: "#",
+                                type: 'POST',
+                                headers: {"X-CSRFToken": cookie},
+                                data: {"username": UserName, "password": sha, "check_password": check_sha},
+                                beforeSend: function () {
+                                    loading($('#loading'))
+                                },
+                                success: function (data) {
+                                    if (data.code === 200) {
+                                        location.reload()
+                                    } else {
+                                        $("#UserName").val("");
+                                        $("#PWD").val("");
+                                        $("#check_PWD").val("");
+                                        alert(data.msg);
+                                    }
+                                }
+                            });
+                        } else {
+                            $("#PWD").val("");
+                            $("#check_PWD").val("");
+                            document.getElementById("check_PWD_span").innerText = "两次输入密码不一致";
+                            document.getElementById("check_PWD_span").style.display = "inline";
+                        }
+                    } else {
+                        $("#PWD").val("");
+                        $("#check_PWD").val("");
+                        document.getElementById("PWD_span").innerText = "密码最少六位,必须由数字和字母组成";
+                        document.getElementById("PWD_span").style.display = "inline";
+                    }
+                } else {
+                    $("#UserName").val("");
+                    $("#PWD").val("");
+                    $("#check_PWD").val("");
+                    document.getElementById("UserName_span").innerText = "用户名四到十六位（字母,数字,下划线,减号)";
+                    document.getElementById("UserName_span").style.display = "inline";
+                }
+            });
+
+            //绑定回车提交事件
+            $('#myModal').on("keydown", function (event) {
+                let code = event.keyCode;
+                if (code === 13) {
+                    $("#add_button").click();
+                }
+            });
+
+            //关闭清空输入框
+            $("#clear_button").click(function () {
+                $("#UserName").val("");
+                $("#PWD").val("");
+                $("#check_PWD").val("");
+                document.getElementById("UserName_span").style.display = "none";
+                document.getElementById("PWD_span").style.display = "none";
+                document.getElementById("check_PWD_span").style.display = "none";
+            });
+
+            //删除按钮操作
+            $("#delete_button").click(function () {
+                let result = [];
+                $("#tbody").find(".selected").each(function () {
+                    result.push($(this).find('a').attr('href'));
+                });
+
+                let lang = result.length;
+                if (lang === 0) {
+                    alert("请点击选择所删除的用户!");
+                    return false
+                } else {
+                    let choose = confirm("您确定删除所选用户吗?");
+                    if (!choose) {
+                        return false
+                    }
+                }
+                // 删除所选用户
+                $.ajax({
+                    url: "#",
+                    data: {
+                        'data': result
+                    },
+                    traditional: true,
+                    type: 'DELETE',
+                    headers: {"X-CSRFToken": cookie},
+                    beforeSend: function () {
+                        loading($('#loading'))
+                    },
+                    success: function (data) {
+                        if (data.code === 200) {
+                            location.reload()
+                        } else {
+                            alert(data.msg)
+                        }
+                    }
+                })
+            });
+        });
+    </script>
+{% endblock %}
