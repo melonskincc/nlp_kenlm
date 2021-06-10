@@ -6,7 +6,7 @@ billiard==3.6.3.0
 celery==4.4.5
 certifi==2020.4.5.2
 chardet==3.0.4
-Django==2.1.8
+Django==2.2.24
 django-crispy-forms==1.9.1
 django-formtools==2.2
 django-qrcode==0.3
